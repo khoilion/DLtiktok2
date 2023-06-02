@@ -1,0 +1,48 @@
+/* styles.css */
+
+/* Add styles here to customize the appearance of your app */
+body {
+    height: 100vh;
+    font-family: 'Alkatra', cursive !important;
+    background-image: url('./Img/hinh-nen-powerpoint-xanh-duong-cuc-dep_012324053.jpeg');
+    background-size: cover;
+}
+
+.input-group-text {
+    width: 120px;
+}
+
+.btn__download {
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+    border: none;
+    width: 150px;
+    padding: 0.375rem 0.75rem;
+    font-weight: 700;
+    border-radius: 0.25rem;
+}
+
+.title_page {
+    background-color: rgb(91 91 110) !important;
+    padding: 15px 0px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 23px;
+}
+
+#download-msg {
+    padding: 15px;
+    height: 25vh;
+    overflow-y: scroll;
+    margin: 35px;
+}
+
+.h-50vh {
+    height: 50vh;
+}
+
+#formKey {
+    text-align: center;
+    padding-top: 20px;
+}
