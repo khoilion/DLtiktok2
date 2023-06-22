@@ -2,7 +2,6 @@ const https = require("https"); // or 'https' for https:// URLs
 const fs = require("fs");
 const electron = require("electron");
 const axios = require("axios");
-const { log } = require("console");
 
 window.addEventListener("DOMContentLoaded", () => {
   main();
@@ -24,9 +23,15 @@ const download = (url, dest, onSetMessage) => {
           });
         })
         .on("error", function (err) {
-          // Handle errors
           if (dest) {
-            fs.unlink(dest); // Delete the file async. (But we don't checck the result)
+            fs.unlink(dest, (error => {
+              if (error) {
+                onSetMessage(`Download err: ${error}`);
+                reject(err);
+              } else {
+                console.log(`\nDeleted file: ${dest}`);
+              }
+            }));
           }
           onSetMessage(`Download err: ${err}`);
           reject(err);
@@ -145,40 +150,48 @@ async function main() {
   const inputKey = document.getElementById("inputKey");
   const formKey = document.getElementById("formKey");
   const formDownload = document.getElementById("formDownload");
-  formDownload.style.display = "none";
+  const mainPage = document.getElementById("mainPage");
+  const nodeLoad = document.createElement("div");
+  nodeLoad.classList.add("loader");
+  mainPage.appendChild(nodeLoad);
   const { machineIdSync } = require("node-machine-id");
   const id = machineIdSync();
   const checkdeviceID = await checkDevice(id);
+  const handleSetMessage = (msg) => {
+    downloadMsg.innerHTML += `<p>${msg}</p>`;
+
+    downloadMsg.scrollTop = downloadMsg.scrollHeight + 100;
+  };
   if (checkdeviceID === "OK") {
-    button.addEventListener("click", async () => {
-      if (sessionStorage.getItem("validateKey") === "OK") {
-        button.disabled = true;
-        button.textContent = "Downloading...";
-        downloadMsg.innerHTML = "";
-        const uniqueId = uniqueIdInput.value;
-        if (isNaN(countEl.value)) {
-          alert("Please enter a valid number");
-          return;
-        }
-        if (countEl.value < 1) {
-          alert("Please enter a number greater than 0");
-          return;
-        }
-        await handleDownload(
-          uniqueId,
-          countEl.value,
-          handleSetMessage,
-          inputRegion.value,
-          keywords.value
-        );
-        button.disabled = false;
-        alert("download success");
-        button.textContent = "Download";
-      }
-    });
     formDownload.style.display = "block";
-    formKey.style.display = "none";
+    nodeLoad.remove();
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      button.textContent = "Downloading...";
+      downloadMsg.innerHTML = "";
+      const uniqueId = uniqueIdInput.value;
+      if (isNaN(countEl.value)) {
+        alert("Please enter a valid number");
+        return;
+      }
+      if (countEl.value < 1) {
+        alert("Please enter a number greater than 0");
+        return;
+      }
+      await handleDownload(
+        uniqueId,
+        countEl.value,
+        handleSetMessage,
+        inputRegion.value,
+        keywords.value
+      );
+      button.disabled = false;
+      alert("download success");
+      button.textContent = "Download";
+    });
   } else {
+    formKey.style.display = "block";
+    nodeLoad.remove();
     validateKey.addEventListener("click", async () => {
       const checkKey = await checkKeyForm(inputKey.value, id);
       if (checkKey === "OK") {
@@ -186,37 +199,29 @@ async function main() {
         formKey.style.display = "none";
       }
     });
-
-    const handleSetMessage = (msg) => {
-      downloadMsg.innerHTML += `<p>${msg}</p>`;
-
-      downloadMsg.scrollTop = downloadMsg.scrollHeight + 100;
-    };
     button.addEventListener("click", async () => {
-      if (sessionStorage.getItem("validateKey") === "OK") {
-        button.disabled = true;
-        button.textContent = "Downloading...";
-        downloadMsg.innerHTML = "";
-        const uniqueId = uniqueIdInput.value;
-        if (isNaN(countEl.value)) {
-          alert("Please enter a valid number");
-          return;
-        }
-        if (countEl.value < 1) {
-          alert("Please enter a number greater than 0");
-          return;
-        }
-        await handleDownload(
-          uniqueId,
-          countEl.value,
-          handleSetMessage,
-          inputRegion.value,
-          keywords.value
-        );
-        button.disabled = false;
-        alert("download success");
-        button.textContent = "Download";
+      button.disabled = true;
+      button.textContent = "Downloading...";
+      downloadMsg.innerHTML = "";
+      const uniqueId = uniqueIdInput.value;
+      if (isNaN(countEl.value)) {
+        alert("Please enter a valid number");
+        return;
       }
+      if (countEl.value < 1) {
+        alert("Please enter a number greater than 0");
+        return;
+      }
+      await handleDownload(
+        uniqueId,
+        countEl.value,
+        handleSetMessage,
+        inputRegion.value,
+        keywords.value
+      );
+      button.disabled = false;
+      alert("download success");
+      button.textContent = "Download";
     });
   }
 }
@@ -228,9 +233,7 @@ const checkKeyForm = (value, id) => {
         .get(
           `https://us-central1-litewallet.cloudfunctions.net/veryfi-key-tiktook-app?key=${value}&deviceId=${id}`,
           function (response) {
-            console.log(response);
             if (response.statusCode === 200) {
-              sessionStorage.setItem("validateKey", "OK");
               resolve("OK");
             }
           }
@@ -241,35 +244,6 @@ const checkKeyForm = (value, id) => {
           reject(err);
         });
       return request;
-    } catch (err) {
-      reject(err);
-    }
-  });
-};
-
-// ===========================================================================================
-
-const download2 = (url, dest, onSetMessage) => {
-  return new Promise((resolve, reject) => {
-    try {
-      var file = fs.createWriteStream(dest);
-
-      var request = https
-        .get(url, function (response) {
-          response.pipe(file);
-          file.on("finish", function () {
-            onSetMessage(`Download success: ${dest}`);
-            file.close(); // close() is async, call cb after close completes.
-            console.log("download success");
-            resolve(dest);
-          });
-        })
-        .on("error", function (err) {
-          // Handle errors
-          fs.unlink(dest); // Delete the file async. (But we don't check the result)
-          onSetMessage(`Download err: ${err}`);
-          reject(err);
-        });
     } catch (err) {
       reject(err);
     }
